@@ -1,11 +1,13 @@
-// Main Chat Orchestration with Streaming Support
-import Anthropic from '@anthropic-ai/sdk';
-import { churchManagementTools, systemPrompt } from '@/lib/tools';
+// Main Chat Orchestration with Streaming Support (API-Agnostic)
+import { systemPrompt } from '@/lib/tools';
 import { executeTool } from '@/lib/tool-executor';
-
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!
-});
+import {
+  getProvider,
+  getToolCallsFromStream,
+  formatAssistantMessage,
+  formatToolResults,
+  createAIStream
+} from '@/lib/ai-provider';
 
 export const runtime = 'edge';
 export const maxDuration = 60;
@@ -21,7 +23,19 @@ export async function POST(req: Request) {
       );
     }
 
+    // Check that we have an API key configured
+    let provider: 'anthropic' | 'openai';
+    try {
+      provider = getProvider();
+    } catch {
+      return Response.json(
+        { error: 'No API key configured. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.' },
+        { status: 500 }
+      );
+    }
+
     const encoder = new TextEncoder();
+    const activeSystemPrompt = customSystemPrompt || systemPrompt;
 
     const stream = new ReadableStream({
       async start(controller) {
@@ -34,100 +48,80 @@ export async function POST(req: Request) {
           while (continueLoop && iterations < MAX_ITERATIONS) {
             iterations++;
 
-            // Stream the response from Claude
-            const messageStream = await client.messages.stream({
-              model: "claude-sonnet-4-20250514",
-              max_tokens: 4096,
-              system: customSystemPrompt || systemPrompt,
-              tools: churchManagementTools,
-              messages: currentMessages
-            });
-
-            // Stream text deltas to client
-            for await (const event of messageStream) {
-              if (event.type === 'content_block_delta') {
-                if (event.delta.type === 'text_delta') {
-                  controller.enqueue(
-                    encoder.encode(`data: ${JSON.stringify({
-                      type: 'text',
-                      content: event.delta.text
-                    })}\n\n`)
-                  );
-                }
+            // Stream text to client
+            for await (const event of createAIStream({
+              messages: currentMessages,
+              systemPrompt: activeSystemPrompt
+            })) {
+              if (event.type === 'text' && event.content) {
+                controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify({
+                    type: 'text',
+                    content: event.content
+                  })}\n\n`)
+                );
               }
             }
 
-            // Get final message
-            const fullResponse = await messageStream.finalMessage();
+            // Get full response for tool handling
+            const { toolCalls, stopReason, fullResponse } = await getToolCallsFromStream(
+              currentMessages,
+              activeSystemPrompt
+            );
 
-            // Check if Claude wants to use tools
-            if (fullResponse.stop_reason === 'tool_use') {
-              const toolUseBlocks = fullResponse.content.filter(
-                (block): block is Anthropic.Messages.ToolUseBlock =>
-                  block.type === 'tool_use'
+            // Check if there are tool calls to process
+            if (stopReason === 'tool_use' && toolCalls.length > 0) {
+              // Notify client about tool execution
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify({
+                  type: 'tool_start',
+                  tools: toolCalls.map(t => ({
+                    name: t.name,
+                    id: t.id
+                  }))
+                })}\n\n`)
               );
 
-              if (toolUseBlocks.length > 0) {
-                // Notify client about tool execution
-                controller.enqueue(
-                  encoder.encode(`data: ${JSON.stringify({
-                    type: 'tool_start',
-                    tools: toolUseBlocks.map(t => ({
-                      name: t.name,
-                      id: t.id
-                    }))
-                  })}\n\n`)
-                );
+              // Execute tools in parallel
+              const toolResults = await Promise.all(
+                toolCalls.map(async (toolCall) => {
+                  try {
+                    const result = await executeTool(toolCall.name, toolCall.input);
 
-                // Execute tools in parallel
-                const toolResults = await Promise.all(
-                  toolUseBlocks.map(async (toolUse) => {
-                    try {
-                      const result = await executeTool(toolUse.name, toolUse.input as Record<string, any>);
+                    // Notify client of tool completion
+                    controller.enqueue(
+                      encoder.encode(`data: ${JSON.stringify({
+                        type: 'tool_complete',
+                        name: toolCall.name,
+                        success: result.success
+                      })}\n\n`)
+                    );
 
-                      // Notify client of tool completion
-                      controller.enqueue(
-                        encoder.encode(`data: ${JSON.stringify({
-                          type: 'tool_complete',
-                          name: toolUse.name,
-                          success: result.success
-                        })}\n\n`)
-                      );
+                    return {
+                      tool_use_id: toolCall.id,
+                      content: JSON.stringify(
+                        result.success ? result.data : { error: result.error }
+                      )
+                    };
+                  } catch (error: unknown) {
+                    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                    console.error(`Tool execution failed: ${toolCall.name}`, error);
+                    return {
+                      tool_use_id: toolCall.id,
+                      content: JSON.stringify({
+                        error: `Tool execution failed: ${errorMessage}`
+                      })
+                    };
+                  }
+                })
+              );
 
-                      return {
-                        type: 'tool_result' as const,
-                        tool_use_id: toolUse.id,
-                        content: JSON.stringify(
-                          result.success ? result.data : { error: result.error }
-                        )
-                      };
-                    } catch (error: any) {
-                      console.error(`Tool execution failed: ${toolUse.name}`, error);
-                      return {
-                        type: 'tool_result' as const,
-                        tool_use_id: toolUse.id,
-                        content: JSON.stringify({
-                          error: `Tool execution failed: ${error.message}`
-                        })
-                      };
-                    }
-                  })
-                );
+              // Add assistant response and tool results to message history
+              currentMessages.push(formatAssistantMessage(fullResponse, provider));
+              currentMessages.push(formatToolResults(toolResults));
 
-                // Add assistant response and tool results to message history
-                currentMessages.push({
-                  role: 'assistant',
-                  content: fullResponse.content
-                });
-
-                currentMessages.push({
-                  role: 'user',
-                  content: toolResults
-                });
-
-                // Continue the loop to let Claude respond with tool results
-                continue;
-              }
+              // Continue the loop to let AI respond with tool results
+              continue;
             }
 
             // No more tool calls - we're done
@@ -151,12 +145,13 @@ export async function POST(req: Request) {
             controller.close();
           }
 
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'An error occurred';
           console.error('Streaming error:', error);
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify({
               type: 'error',
-              message: error.message || 'An error occurred'
+              message: errorMessage
             })}\n\n`)
           );
           controller.close();
@@ -172,10 +167,11 @@ export async function POST(req: Request) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     console.error('Chat endpoint error:', error);
     return Response.json(
-      { error: error.message || 'Internal server error' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

@@ -1,5 +1,14 @@
 // AI Agent Tool Definitions for Church Management System
-import { Tool } from '@anthropic-ai/sdk/resources/messages';
+
+export interface Tool {
+  name: string;
+  description: string;
+  input_schema: {
+    type: 'object';
+    properties: Record<string, unknown>;
+    required?: string[];
+  };
+}
 
 export const churchManagementTools: Tool[] = [
   // ==================== MEMBER MANAGEMENT ====================
