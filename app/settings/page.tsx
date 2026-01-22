@@ -18,7 +18,7 @@ export default function SettingsPage() {
 
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Header */}
-                <header className="h-24 px-10 flex items-center justify-between shrink-0 bg-white/70 backdrop-blur-xl z-30 border-b border-slate-50/50">
+                <header className="h-16 md:h-24 px-4 md:px-10 flex items-center justify-between shrink-0 bg-white/70 backdrop-blur-xl z-30 border-b border-slate-50/50">
                     <div className="flex items-center gap-6">
                         <button
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -45,7 +45,7 @@ export default function SettingsPage() {
                 </header>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar">
                     <div className="max-w-4xl space-y-8 animate-in">
                         {/* Profile Settings */}
                         <Card title="Church Profile" icon={User}>

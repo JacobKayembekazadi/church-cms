@@ -135,7 +135,7 @@ export default function DepartmentsPage() {
             <Sidebar isOpen={isSidebarOpen} />
 
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
-                <header className="h-24 px-10 flex items-center justify-between shrink-0 bg-white/70 backdrop-blur-xl z-30 border-b border-slate-50/50">
+                <header className="h-16 md:h-24 px-4 md:px-10 flex items-center justify-between shrink-0 bg-white/70 backdrop-blur-xl z-30 border-b border-slate-50/50">
                     <div className="flex items-center gap-6">
                         <button
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -161,7 +161,7 @@ export default function DepartmentsPage() {
                     </div>
                 </header>
 
-                <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar">
                     {isLoading ? (
                         <div className="flex items-center justify-center h-64">
                             <div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full"></div>

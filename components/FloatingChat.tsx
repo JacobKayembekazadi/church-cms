@@ -63,7 +63,7 @@ export default function FloatingChat() {
         return (
             <button
                 onClick={() => setIsOpen(true)}
-                className="fixed bottom-8 right-8 z-50 w-16 h-16 bg-indigo-600 text-white rounded-[1.5rem] shadow-2xl shadow-indigo-300 flex items-center justify-center hover:scale-110 hover:rotate-6 transition-all duration-300 group"
+                className="fixed bottom-4 right-4 md:bottom-8 md:right-8 z-50 w-14 h-14 md:w-16 md:h-16 bg-indigo-600 text-white rounded-[1.5rem] shadow-2xl shadow-indigo-300 flex items-center justify-center hover:scale-110 hover:rotate-6 transition-all duration-300 group"
             >
                 <MessageSquare className="w-7 h-7 group-hover:hidden" />
                 <Sparkles className="w-7 h-7 hidden group-hover:block animate-pulse" />
@@ -73,7 +73,7 @@ export default function FloatingChat() {
     }
 
     return (
-        <div className={`fixed bottom-8 right-8 z-50 bg-white rounded-[2rem] shadow-2xl border border-slate-100 overflow-hidden transition-all duration-500 ${isMinimized ? 'w-72 h-16' : 'w-96 h-[32rem]'}`}>
+        <div className={`fixed bottom-4 right-4 md:bottom-8 md:right-8 z-50 bg-white rounded-[2rem] shadow-2xl border border-slate-100 overflow-hidden transition-all duration-500 ${isMinimized ? 'w-72 h-16' : 'w-[calc(100vw-2rem)] md:w-96 h-[70vh] md:h-[32rem] max-w-96'}`}>
             {/* Header */}
             <div className="h-16 px-6 flex items-center justify-between bg-gradient-to-r from-indigo-600 to-indigo-700 text-white">
                 <div className="flex items-center gap-3">

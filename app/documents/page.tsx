@@ -149,7 +149,7 @@ export default function DocumentsPage() {
 
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Header */}
-                <header className="h-24 px-10 flex items-center justify-between shrink-0 bg-white/70 backdrop-blur-xl z-30 border-b border-slate-50/50">
+                <header className="h-16 md:h-24 px-4 md:px-10 flex items-center justify-between shrink-0 bg-white/70 backdrop-blur-xl z-30 border-b border-slate-50/50">
                     <div className="flex items-center gap-6">
                         <button
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -176,7 +176,7 @@ export default function DocumentsPage() {
                 </header>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar">
                     <div className="space-y-8 animate-in">
                         {/* Category Pills & Search */}
                         <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
@@ -199,7 +199,7 @@ export default function DocumentsPage() {
                                 <input
                                     type="text"
                                     placeholder="Search files..."
-                                    className="pl-12 pr-4 py-3 bg-white border border-slate-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 w-72 transition-all"
+                                    className="pl-12 pr-4 py-3 bg-white border border-slate-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-100 w-full md:w-72 transition-all"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
@@ -311,7 +311,7 @@ export default function DocumentsPage() {
                                     placeholder="Document name..."
                                 />
                             </div>
-                            <div className="grid grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">File Type</label>
                                     <div className="grid grid-cols-3 gap-2">
