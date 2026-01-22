@@ -11,7 +11,8 @@ import {
     FileText,
     Settings,
     ShieldCheck,
-    LogOut
+    LogOut,
+    X
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -59,6 +60,15 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
                             </div>
                         )}
                     </div>
+                    {/* Close button for mobile */}
+                    {isOpen && onToggle && (
+                        <button
+                            onClick={onToggle}
+                            className="md:hidden p-2 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-600 transition-colors"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                    )}
                 </div>
 
                 {/* Navigation */}

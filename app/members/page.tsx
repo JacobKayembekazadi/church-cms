@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import {
-    Users, Plus, Search, Edit2, Trash2, Filter, Bell, X, UserPlus
+    Users, Plus, Search, Edit2, Trash2, Menu, Bell, X, UserPlus
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import FloatingChat from '@/components/FloatingChat';
@@ -166,7 +166,7 @@ export default function MembersPage() {
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] flex font-sans text-slate-900 selection:bg-indigo-100">
-            <Sidebar isOpen={isSidebarOpen} />
+            <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(false)} />
 
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Header */}
@@ -175,8 +175,9 @@ export default function MembersPage() {
                         <button
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                             className="p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-indigo-600 hover:shadow-lg transition-all"
+                            aria-label="Toggle menu"
                         >
-                            <Filter className="w-5 h-5" />
+                            <Menu className="w-5 h-5" />
                         </button>
                         <div className="h-10 w-[1px] bg-slate-100 hidden sm:block"></div>
                         <div>
