@@ -83,7 +83,7 @@ export async function POST(req: Request) {
                 const toolResults = await Promise.all(
                   toolUseBlocks.map(async (toolUse) => {
                     try {
-                      const result = await executeTool(toolUse.name, toolUse.input);
+                      const result = await executeTool(toolUse.name, toolUse.input as Record<string, any>);
 
                       // Notify client of tool completion
                       controller.enqueue(
