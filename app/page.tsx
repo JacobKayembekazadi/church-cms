@@ -23,6 +23,23 @@ const DEPARTMENTS = ['Admin', 'Evangelism', 'Ushering', 'Choir', 'Media', 'Youth
 
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  // Close sidebar on mobile by default
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+
+    // Initial check
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isNewOperationOpen, setIsNewOperationOpen] = useState(false);
@@ -68,17 +85,17 @@ export default function Dashboard() {
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Header */}
-        <header className="h-24 px-10 flex items-center justify-between shrink-0 bg-white/70 backdrop-blur-xl z-30 border-b border-slate-50/50">
-          <div className="flex items-center gap-6">
+        <header className="h-16 md:h-24 px-4 md:px-10 flex items-center justify-between shrink-0 bg-white/70 backdrop-blur-xl z-30 border-b border-slate-50/50">
+          <div className="flex items-center gap-4 md:gap-6">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-indigo-600 hover:shadow-lg transition-all"
+              className="p-2 md:p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-indigo-600 hover:shadow-lg transition-all"
             >
               <Filter className="w-5 h-5" />
             </button>
             <div className="h-10 w-[1px] bg-slate-100 hidden sm:block"></div>
             <div>
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">Dashboard</h2>
+              <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Dashboard</h2>
               <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-0.5">Overview • v2.0</p>
             </div>
           </div>
@@ -96,7 +113,7 @@ export default function Dashboard() {
         </header>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 md:space-y-10 custom-scrollbar">
           {isLoading ? (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full"></div>
@@ -245,17 +262,17 @@ export default function Dashboard() {
       {isNewOperationOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={() => setIsNewOperationOpen(false)}></div>
-          <div className="relative bg-white w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden zoom-in">
-            <div className="p-10 border-b border-slate-50 bg-gradient-to-br from-indigo-50/50 to-white flex items-center justify-between">
+          <div className="relative bg-white w-[95%] md:w-full max-w-xl rounded-[2rem] md:rounded-[3rem] shadow-2xl overflow-hidden zoom-in">
+            <div className="p-6 md:p-10 border-b border-slate-50 bg-gradient-to-br from-indigo-50/50 to-white flex items-center justify-between">
               <div>
-                <h3 className="text-3xl font-black text-slate-900 tracking-tight">New Operation</h3>
-                <p className="text-sm text-slate-400 font-bold uppercase tracking-widest mt-2">Create Task or Event</p>
+                <h3 className="text-xl md:text-3xl font-black text-slate-900 tracking-tight">New Operation</h3>
+                <p className="text-xs md:text-sm text-slate-400 font-bold uppercase tracking-widest mt-2">Create Task or Event</p>
               </div>
               <button onClick={() => setIsNewOperationOpen(false)} className="p-2 hover:bg-slate-100 rounded-xl">
                 <X className="w-6 h-6 text-slate-400" />
               </button>
             </div>
-            <div className="p-10 space-y-6">
+            <div className="p-6 md:p-10 space-y-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Operation Type</label>
                 <div className="grid grid-cols-3 gap-3">
